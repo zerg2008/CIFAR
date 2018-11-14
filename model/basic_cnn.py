@@ -28,5 +28,8 @@ class ConvNet:
         # os.path.join（）该函数用以链接字符串
         network_option_path = os.path.join(network_path)
         self.network_option = yaml.load(open(network_option_path, 'r'))# 读取网络结构配置文件
+        # 网络结构
+        print()
+        self.conv_lists, self.dense_lists = [], []
 
 
