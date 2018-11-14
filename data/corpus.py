@@ -10,11 +10,13 @@ class Corpus:
     #类的构造函数
     def __init__(self):
         self.load_cifar10('data/CIFAR10_data')#注意这个路径是以项目的根目录为基准
+        self.n_train = self.train_images.shape[0]#训练集数组长度
+        self.n_valid = self.valid_images.shape[0]#验证集数组长度
+        self.n_test = self.test_images.shape[0] #测试集数组长度
 
     #获取训练数据和测试数据
     #self 代表类的实例，self 在定义类的方法时是必须有的，虽然在调用时不必传入相应的参数。
     def load_cifar10(self,directory):
-
         # 读取训练集
         images,labels=[],[]
         # range（start， end， scan)：
@@ -64,4 +66,17 @@ class Corpus:
         labels = numpy.array(labels, dtype='int')
         self.test_images, self.test_labels = images, labels
 
+    def _split_train_valid(self,valid_rate=0.9):
+        # 划分训练集与验证集，valid_rate表示将总数据的90%作为训练集，10%作为验证集
+        images, labels = self.train_images, self.train_labels
+        thresh = int(images.shape[0] * valid_rate)
+        #images.shape[0]表示images数组第一维数据的长度，这里的长度为50000,也就是有这么多张图片
 
+        # 训练集的长度是从开始到thresh阈值所在的位置
+        self.train_images, self.train_labels = images[0:thresh, :, :, :], labels[0:thresh]
+        # [0:thresh, :, :, :]这种数组的表示方法：用逗号分割不同的维度，这里有三个逗号，说明是四维数组
+        # 冒号分割每一维的起始与终止位置，0:thresh表示该维从0开始到thresh结束，冒号前不写数字表示从头开始
+        # 冒号后不写数字表示到该维数组的结束位置。
+
+        #验证集长度从thresh开始到数组结束
+        self.valid_images, self.valid_labels = images[thresh:, :, :, :], labels[thresh:]
