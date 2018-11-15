@@ -7,7 +7,7 @@ import yaml
 import numpy
 import matplotlib.pyplot as plt
 import tensorflow as tf
-
+from layer.conv_layer import ConvLayer
 class ConvNet:
 
     # network_path :神经网络结构的配置参数存储位置
@@ -31,5 +31,14 @@ class ConvNet:
         # 网络结构
         print()
         self.conv_lists, self.dense_lists = [], []
+        for layer_dict in self.network_option['net']['conv_first']:
+            layer = ConvLayer(
+                x_size=layer_dict['x_size'], y_size=layer_dict['y_size'],
+                x_stride=layer_dict['x_stride'], y_stride=layer_dict['y_stride'],
+                n_filter=layer_dict['n_filter'], activation=layer_dict['activation'],
+                batch_normal=layer_dict['bn'], weight_decay=1e-4,
+                data_format='channels_last', name=layer_dict['name'],
+                input_shape=(image_size, image_size, n_channel))
+            self.conv_lists.append(layer)
 
 
