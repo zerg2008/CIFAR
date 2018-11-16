@@ -18,5 +18,12 @@ def testPic():
     #cifar10数据集这里是float类型，要输出显示，则要修改为uint8这种类型
     plt.imshow(im)  # 将图片输出
     plt.show()
-
-testPic()
+def basic_cnn():
+    from model.basic_cnn import ConvNet
+    convnet = ConvNet(n_channel=3, n_classes=10, image_size=24, network_path='config/networks/basic.yaml')
+    #convnet.debug()
+    #convnet.train(dataloader=cifar10, backup_path='backups/cifar10-v1/', batch_size=128, n_epoch=20)
+    #convnet.test(dataloader=cifar10, backup_path='backup/cifar10-v2/', epoch=5000, batch_size=128)
+    #convnet.observe_salience(batch_size=1, n_channel=3, num_test=10, epoch=2)
+    convnet.observe_hidden_distribution(batch_size=128, n_channel=3, num_test=1, epoch=21)
+basic_cnn()

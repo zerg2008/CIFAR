@@ -10,6 +10,7 @@ class Corpus:
     #类的构造函数
     def __init__(self):
         self.load_cifar10('data/CIFAR10_data')#注意这个路径是以项目的根目录为基准
+        self._split_train_valid(valid_rate=0.9)
         self.n_train = self.train_images.shape[0]#训练集数组长度
         self.n_valid = self.valid_images.shape[0]#验证集数组长度
         self.n_test = self.test_images.shape[0] #测试集数组长度
@@ -80,3 +81,84 @@ class Corpus:
 
         #验证集长度从thresh开始到数组结束
         self.valid_images, self.valid_labels = images[thresh:, :, :, :], labels[thresh:]
+
+    def data_augmentation(self, images, mode='train', flip=False,
+                          crop=False, crop_shape=(24, 24, 3), whiten=False,
+                          noise=False, noise_mean=0, noise_std=0.01):
+        # 图像切割
+        if crop:
+            if mode == 'train':
+                images = self._image_crop(images, shape=crop_shape)
+            elif mode == 'test':
+                images = self._image_crop_test(images, shape=crop_shape)
+        # 图像翻转
+        if flip:
+            images = self._image_flip(images)
+        # 图像白化
+        if whiten:
+            images = self._image_whitening(images)
+        # 图像噪声
+        if noise:
+            images = self._image_noise(images, mean=noise_mean, std=noise_std)
+
+        return images
+
+    def _image_crop(self, images, shape):
+        # 图像切割
+        new_images = []
+        for i in range(images.shape[0]):
+            old_image = images[i, :, :, :]
+            old_image = numpy.pad(old_image, [[4, 4], [4, 4], [0, 0]], 'constant')
+            left = numpy.random.randint(old_image.shape[0] - shape[0] + 1)
+            top = numpy.random.randint(old_image.shape[1] - shape[1] + 1)
+            new_image = old_image[left: left + shape[0], top: top + shape[1], :]
+            new_images.append(new_image)
+
+        return numpy.array(new_images)
+
+    def _image_crop_test(self, images, shape):
+        # 图像切割
+        new_images = []
+        for i in range(images.shape[0]):
+            old_image = images[i, :, :, :]
+            old_image = numpy.pad(old_image, [[4, 4], [4, 4], [0, 0]], 'constant')
+            left = int((old_image.shape[0] - shape[0]) / 2)
+            top = int((old_image.shape[1] - shape[1]) / 2)
+            new_image = old_image[left: left + shape[0], top: top + shape[1], :]
+            new_images.append(new_image)
+
+        return numpy.array(new_images)
+
+    def _image_flip(self, images):
+        # 图像翻转
+        for i in range(images.shape[0]):
+            old_image = images[i, :, :, :]
+            if numpy.random.random() < 0.5:
+                new_image = cv2.flip(old_image, 1)
+            else:
+                new_image = old_image
+            images[i, :, :, :] = new_image
+
+        return images
+
+    def _image_whitening(self, images):
+        # 图像白化
+        for i in range(images.shape[0]):
+            old_image = images[i, :, :, :]
+            new_image = (old_image - numpy.mean(old_image)) / numpy.std(old_image)
+            images[i, :, :, :] = new_image
+
+        return images
+
+    def _image_noise(self, images, mean=0, std=0.01):
+        # 图像噪声
+        for i in range(images.shape[0]):
+            old_image = images[i, :, :, :]
+            new_image = old_image
+            for i in range(images.shape[0]):
+                for j in range(images.shape[1]):
+                    for k in range(images.shape[2]):
+                        new_image[i, j, k] += random.gauss(mean, std)
+            images[i, :, :, :] = new_image
+
+        return images
