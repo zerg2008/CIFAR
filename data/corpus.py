@@ -14,6 +14,7 @@ class Corpus:
         self.n_train = self.train_images.shape[0]#训练集数组长度
         self.n_valid = self.valid_images.shape[0]#验证集数组长度
         self.n_test = self.test_images.shape[0] #测试集数组长度
+        self.index = 0
 
     #获取训练数据和测试数据
     #self 代表类的实例，self 在定义类的方法时是必须有的，虽然在调用时不必传入相应的参数。
@@ -81,6 +82,14 @@ class Corpus:
 
         #验证集长度从thresh开始到数组结束
         self.valid_images, self.valid_labels = images[thresh:, :, :, :], labels[thresh:]
+
+    def next_batch(self, batch_size):
+        batch_flower = self.train_images[self.index:self.index + batch_size, :]
+        batch_label = self.train_labels[self.index:self.index + batch_size]
+        self.index += batch_size
+        if self.index >= self.n_train:
+            self.index = 0
+        return [batch_flower, batch_label]
 
     def data_augmentation(self, images, mode='train', flip=False,
                           crop=False, crop_shape=(24, 24, 3), whiten=False,

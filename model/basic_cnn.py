@@ -10,6 +10,7 @@ import tensorflow as tf
 from layer.conv_layer import ConvLayer
 from layer.pool_layer import PoolLayer
 from layer.dense_layer import DenseLayer
+
 class ConvNet:
 
     # network_path :神经网络结构的配置参数存储位置
@@ -233,7 +234,7 @@ class ConvNet:
                        self.keep_prob: 1.0})
         print(temp)
 
-    def observe_salience(self, batch_size=128, image_h=32, image_w=32, n_channel=3,
+    def observe_salience(self, dataloader,batch_size=128, image_h=32, image_w=32, n_channel=3,
                          num_test=10, epoch=1):
         if not os.path.exists('results/epoch%d/' % (epoch)):
             os.makedirs('results/epoch%d/' % (epoch))
@@ -246,7 +247,7 @@ class ConvNet:
         print('read model from %s' % (model_path))
         # 获取图像并计算梯度
         for batch in range(num_test):
-            batch_image, batch_label = cifar10.test.next_batch(batch_size)
+            batch_image, batch_label = dataloader.next_batch(batch_size)
             image = numpy.array(batch_image.reshape([image_h, image_w, n_channel]) * 255,
                                 dtype='uint8')
             result = sess.run([self.labels_prob, self.labels_max_prob, self.labels_pred,
@@ -268,7 +269,7 @@ class ConvNet:
             plt.imshow(gradient, cmap=plt.cm.gray)
             plt.savefig('results/epoch%d/result_%d.png' % (epoch, batch))
 
-    def observe_hidden_distribution(self, batch_size=128, image_h=32, image_w=32, n_channel=3,
+    def observe_hidden_distribution(self,dataloader, batch_size=128, image_h=32, image_w=32, n_channel=3,
                                     num_test=10, epoch=1):
         if not os.path.exists('results/epoch%d/' % (epoch)):
             os.makedirs('results/epoch%d/' % (epoch))
@@ -283,7 +284,7 @@ class ConvNet:
             sess.run(tf.global_variables_initializer())
         # 获取图像并计算梯度
         for batch in range(num_test):
-            batch_image, batch_label = cifar10.test.next_batch(batch_size)
+            batch_image, batch_label = dataloader.next_batch(batch_size)
             result = sess.run([self.nobn_conv1, self.bn_conv1, self.nobn_conv2, self.bn_conv2,
                                self.nobn_conv3, self.bn_conv3, self.nobn_fc1, self.nobn_fc1,
                                self.nobn_softmax, self.bn_softmax],
