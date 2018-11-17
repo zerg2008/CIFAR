@@ -33,6 +33,7 @@ class ConvNet:
         self.network_option = yaml.load(open(network_option_path, 'r'))# 读取网络结构配置文件
         # 网络结构
         print()
+
         self.conv_lists, self.dense_lists = [], []
         for layer_dict in self.network_option['net']['conv_first']:
             layer = ConvLayer(
@@ -91,6 +92,8 @@ class ConvNet:
                 logits=logits, labels=self.labels))
         self.avg_loss = self.objective
 
+        tf.summary.scalar('loss', self.avg_loss)#记录损失函数的变化
+
         # 优化器
         lr = tf.cond(tf.less(self.global_step, 50000),
                      lambda: tf.constant(0.001),
@@ -100,9 +103,12 @@ class ConvNet:
         self.optimizer = tf.train.AdamOptimizer(learning_rate=lr).minimize(
             self.avg_loss, global_step=self.global_step)
 
+        #tf.summary.scalar('optimizer', self.optimizer)#记录优化器的变化
+
         # 观察值
         correct_prediction = tf.equal(self.labels, tf.argmax(logits, 1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+        tf.summary.scalar('optimizer', self.accuracy)  # 记录优化器的变化
 
     def train(self, dataloader, backup_path, n_epoch=5, batch_size=128):
         if not os.path.exists(backup_path):
@@ -116,6 +122,10 @@ class ConvNet:
         self.saver = tf.train.Saver(
             var_list=tf.global_variables(), write_version=tf.train.SaverDef.V2,
             max_to_keep=10)
+
+        #初始化可视化内容
+        merged = tf.summary.merge_all()
+        train_writer = tf.summary.FileWriter('train', self.sess.graph)
 
         # 模型初始化
         self.sess.run(tf.global_variables_initializer())
@@ -143,14 +153,16 @@ class ConvNet:
             for i in range(0, dataloader.n_train, batch_size):
                 batch_images = train_images[i: i + batch_size]
                 batch_labels = train_labels[i: i + batch_size]
-                [_, avg_loss, iteration] = self.sess.run(
-                    fetches=[self.optimizer, self.avg_loss, self.global_step],
+                [summary,_, avg_loss, iteration] = self.sess.run(
+                    fetches=[merged,self.optimizer, self.avg_loss, self.global_step],
                     feed_dict={self.images: batch_images,
                                self.labels: batch_labels,
                                self.keep_prob: 0.5})
+                train_writer.add_summary(summary, i)
                 train_loss += avg_loss * batch_images.shape[0]
             et = time.time()
             train_span = et - st
+            train_writer.close()
             average_loss = 1.0 * train_loss / dataloader.n_train
 
             # 在训练之后，获得本轮的训练集损失值和准确率
@@ -235,13 +247,13 @@ class ConvNet:
         print(temp)
 
     def observe_salience(self, dataloader,batch_size=128, image_h=32, image_w=32, n_channel=3,
-                         num_test=10, epoch=1):
+                         num_test=10, epoch=0):
         if not os.path.exists('results/epoch%d/' % (epoch)):
             os.makedirs('results/epoch%d/' % (epoch))
         saver = tf.train.Saver(write_version=tf.train.SaverDef.V2)
         sess = tf.Session()
         # 读取模型
-        model_path = 'backup/cifar10/model_%d.ckpt' % (epoch)
+        model_path = 'backups/cifar10-v1/model_%d.ckpt' % (epoch)
         assert (os.path.exists(model_path + '.index'))
         saver.restore(sess, model_path)
         print('read model from %s' % (model_path))

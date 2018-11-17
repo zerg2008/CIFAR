@@ -22,8 +22,8 @@ def basic_cnn():
     from model.basic_cnn import ConvNet
     convnet = ConvNet(n_channel=3, n_classes=10, image_size=24, network_path='config/networks/basic.yaml')
     #convnet.debug()
-    #convnet.train(dataloader=cifar10, backup_path='backups/cifar10-v1/', batch_size=128, n_epoch=20)
-    #convnet.test(dataloader=cifar10, backup_path='backup/cifar10-v2/', epoch=5000, batch_size=128)
-    convnet.observe_salience(dataloader=cifar10,batch_size=1, n_channel=3, num_test=10, epoch=2)
+    convnet.train(dataloader=cifar10, backup_path='backups/cifar10-v1/', batch_size=128, n_epoch=20)
+    #convnet.test(dataloader=cifar10, backup_path='backups/cifar10-v1/', epoch=0, batch_size=128)
+    #convnet.observe_salience(dataloader=cifar10,batch_size=1, n_channel=3, num_test=10, epoch=0)
     #convnet.observe_hidden_distribution(dataloader=cifar10,batch_size=128, n_channel=3, num_test=1, epoch=21)
 basic_cnn()
