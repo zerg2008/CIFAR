@@ -284,6 +284,8 @@ class ConvNet:
             plt.imshow(gradient, cmap=plt.cm.gray)
             plt.savefig('results/epoch%d/result_%d.png' % (epoch, batch))
 
+
+
     def observe_hidden_distribution(self,dataloader, batch_size=128, image_h=32, image_w=32, n_channel=3,
                                     num_test=10, epoch=1):
         if not os.path.exists('results/epoch%d/' % (epoch)):
