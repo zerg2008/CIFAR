@@ -17,6 +17,7 @@ class ConvNet:
     # n_channel：输入图像的通道数
     # n_classes：多分类器预分类的数目，默认分10类
     # image_size：图像的大小
+
     def __init__(self, network_path, n_channel=3, n_classes=10, image_size=24):
         # 输入变量
         self.images = tf.placeholder(
@@ -108,6 +109,7 @@ class ConvNet:
         # 观察值
         correct_prediction = tf.equal(self.labels, tf.argmax(logits, 1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, 'float'))
+        print(correct_prediction)
         tf.summary.scalar('optimizer', self.accuracy)  # 记录优化器的变化
 
     def train(self, dataloader, backup_path, n_epoch=5, batch_size=128):
@@ -124,8 +126,9 @@ class ConvNet:
             max_to_keep=10)
 
         #初始化可视化内容
+        log_dir = './log'
         merged = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter('train', self.sess.graph)
+        train_writer = tf.summary.FileWriter(log_dir + '/train', self.sess.graph)
 
         # 模型初始化
         self.sess.run(tf.global_variables_initializer())
