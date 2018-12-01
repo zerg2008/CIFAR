@@ -74,8 +74,7 @@ class ConvLayer:
                 kernel_initializer=tf.constant_initializer(weight_init_value),
                 trainable=True,
                 name='%s_conv' % (self.name))
-
-            self.variable_summaries(weight_init_value)
+            self.variable_summaries(self.conv.weights)
 
             if self.batch_normal:
                 beta_init_value = numpy.zeros([self.n_filter], dtype='float32')
