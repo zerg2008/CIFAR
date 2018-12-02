@@ -74,7 +74,7 @@ class ConvLayer:
                 kernel_initializer=tf.constant_initializer(weight_init_value),
                 trainable=True,
                 name='%s_conv' % (self.name))
-            self.variable_summaries(self.conv.weights)
+
 
             if self.batch_normal:
                 beta_init_value = numpy.zeros([self.n_filter], dtype='float32')
@@ -118,7 +118,8 @@ class ConvLayer:
         with tf.name_scope('%s_cal' % (self.name)) as scope:
             # hidden states
             self.hidden = self.conv(inputs=inputs)
-
+            tf.summary.histogram('histogram', self.conv.weights)
+            #self.variable_summaries(self.conv.weights)
             # batch normalization 技术
             if self.batch_normal:
                 self.hidden = self.bn(self.hidden, training=is_training)
